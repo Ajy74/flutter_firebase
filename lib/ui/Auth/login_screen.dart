@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_firebase/Auth/signup_screen.dart';
+import 'package:flutter_firebase/ui/Auth/signup_screen.dart';
+import 'package:flutter_firebase/ui/posts/post_screen.dart';
+import 'package:flutter_firebase/utils/utils.dart';
 import 'package:flutter_firebase/widget/round_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,11 +19,32 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  final _auth = FirebaseAuth.instance;
+  bool isCreated = false;
+
   @override
   void dispose() {
     super.dispose();
     emailController.dispose();
     passwordController.dispose();
+  }
+
+  void login(){
+    _auth.signInWithEmailAndPassword(
+      email: emailController.text.toString(), password: passwordController.text.toString()
+    ).then((value) {
+        Utils().toastMessage(value.user!.email.toString());
+        setState(() {
+          isCreated=false;
+        });
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>PostScreen()));
+    }).onError((error, stackTrace) {
+      debugPrint(error.toString());
+      Utils().toastMessage(error.toString());
+      setState(() {
+          isCreated=false;
+        });
+    });
   }
 
   @override
@@ -70,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: TextFormField(
                         keyboardType: TextInputType.text,
-                        controller: emailController,
+                        controller: passwordController,
                         decoration: const InputDecoration(
                             hintText: "password",
                             helperText: "must contain(8 character)",
@@ -91,10 +115,15 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 30,),
               Padding(
                 padding: const EdgeInsets.all(20.0),
-                child: RoundButton(width: double.maxFinite,title: "Signup",
+                child: RoundButton(width: double.maxFinite,title: "Login",
+                loading: isCreated,
                  onPress: () {
+                   setState(() {
+                        isCreated=true;
+                  });
                   if(_formKey.currentState!.validate()){
-    
+                      //to login user
+                      login();
                   }
                 },),
               ),

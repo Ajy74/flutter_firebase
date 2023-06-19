@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_firebase/utils/utils.dart';
 import 'package:flutter_firebase/widget/round_button.dart';
 
 import 'login_screen.dart';
@@ -16,11 +18,33 @@ class _SignupScreenState extends State<SignupScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  FirebaseAuth _auth = FirebaseAuth.instance;  
+  bool isCreated = false;
+
   @override
   void dispose() {
     super.dispose();
     emailController.dispose();
     passwordController.dispose();
+  }
+
+  void signup(){
+    //to create user on firebase
+    _auth.createUserWithEmailAndPassword(
+      email: emailController.text.toString(), 
+      password: passwordController.text.toString(),
+    ).then((value) {
+        Utils().toastMessage(value.toString());
+        setState(() {
+          isCreated=false;
+        });
+    }).onError((error, stackTrace) {
+      debugPrint(error.toString());
+      Utils().toastMessage(error.toString());
+        setState(() {
+          isCreated=false;
+        });
+    });
   }
 
   @override
@@ -64,7 +88,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: TextFormField(
                       keyboardType: TextInputType.text,
-                      controller: emailController,
+                      controller: passwordController,
                       decoration: const InputDecoration(
                           hintText: "password",
                           helperText: "must contain(8 character)",
@@ -85,10 +109,15 @@ class _SignupScreenState extends State<SignupScreen> {
             SizedBox(height: 30,),
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: RoundButton(width: double.maxFinite,title: "Login",
+              child: RoundButton(width: double.maxFinite,
+              title: "Signup",
+              loading: isCreated,
                onPress: () {
+                  setState(() {
+                    isCreated=true;
+                  });
                 if(_formKey.currentState!.validate()){
-
+                    signup();
                 }
               },),
             ),
